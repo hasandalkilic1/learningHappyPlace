@@ -17,6 +17,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.happyplaces.R
+import com.happyplaces.database.DatabaseHandler
+import com.happyplaces.models.HappyPlaceModel
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -61,6 +63,7 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
             cal.set(Calendar.DAY_OF_MONTH,day)
             updateDateInView()
         }
+        updateDateInView()
 
         et_date!!.setOnClickListener(this)
         tv_add_image.setOnClickListener(this)
@@ -90,7 +93,44 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
                 pictureDiolog.show()
             }
             R.id.btn_save->{
-                //TODO save database
+                when{
+                    et_title.text.isNullOrEmpty() ->{
+                        Toast.makeText(this@AddHappyPlaceActivity,"Please enter title",Toast.LENGTH_SHORT).show()
+                    }
+                    et_description.text.isNullOrEmpty() ->{
+                        Toast.makeText(this@AddHappyPlaceActivity,"Please enter a description",Toast.LENGTH_SHORT).show()
+                    }
+                    et_location.text.isNullOrEmpty() ->{
+                        Toast.makeText(this@AddHappyPlaceActivity,"Please enter a location",Toast.LENGTH_SHORT).show()
+                    }
+                    saveImageToInternalStorage==null->{
+                        Toast.makeText(this@AddHappyPlaceActivity,"Please select an image",Toast.LENGTH_SHORT).show()
+                    }
+                    else->{
+                        val happyPlaceModel=HappyPlaceModel(
+                            0,
+                            et_title.text.toString(),
+                            saveImageToInternalStorage.toString(),
+                            et_description.text.toString(),
+                            et_date.text.toString(),
+                            et_location.text.toString(),
+                            mLatitude,
+                            mLongitude
+                        )
+                        val dbHandler=DatabaseHandler(this)
+
+                        val addHappyPlace=dbHandler.addHappyPlace(happyPlaceModel)
+
+                        if (addHappyPlace > 0) {
+                            Toast.makeText(
+                                this,
+                                "The happy place details are inserted successfully.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            finish();//finishing activity
+                        }
+                    }
+                }
             }
         }
     }
