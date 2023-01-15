@@ -33,8 +33,12 @@ dependencies {
 
     // Adding an google material design dependency for using material components
     implementation 'com.google.android.material:material:1.0.0'
+
+    // Dexter runtime permissions
+    // https://github.com/Karumi/Dexter
     implementation 'com.karumi:dexter:6.0.1'
-    debugImplementation 'im.dino:dbinspector:3.4.1@aar'
+
+    // https://github.com/hdodenhof/CircleImageView
     implementation 'de.hdodenhof:circleimageview:3.0.1'
 
     testImplementation 'junit:junit:4.13'

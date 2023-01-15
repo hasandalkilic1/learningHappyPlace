@@ -1,5 +1,6 @@
 package com.happyplaces.activities
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -19,40 +20,69 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
 
         fabAddHappyPlace.setOnClickListener {
             val intent = Intent(this@MainActivity, AddHappyPlaceActivity::class.java)
-            startActivity(intent)
+
+            startActivityForResult(intent, ADD_PLACE_ACTIVITY_REQUEST_CODE)
         }
+
         getHappyPlacesListFromLocalDB()
     }
 
-    private fun setupHappyPlacesRecyclerView(happyPlaceList:ArrayList<HappyPlaceModel>){
-        rv_happy_places_list.layoutManager=LinearLayoutManager(this)
-        rv_happy_places_list.setHasFixedSize(true)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
-
-        val placesAdapter=HappyPlacesAdapter(this,happyPlaceList)
-        rv_happy_places_list.adapter=placesAdapter
-
-    }
-    private fun getHappyPlacesListFromLocalDB(){
-        val dbHandler=DatabaseHandler(this)
-        val getHappyPlaceList:ArrayList<HappyPlaceModel> = dbHandler.getHappyPlacesList()
-
-        if(getHappyPlaceList.size>0){
-            for(i in getHappyPlaceList){
-                rv_happy_places_list.visibility=View.VISIBLE
-                tv_no_records_available.visibility=View.GONE
-                setupHappyPlacesRecyclerView(getHappyPlaceList)
+        if (requestCode == ADD_PLACE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                getHappyPlacesListFromLocalDB()
+            } else {
+                Log.e("Activity", "Cancelled or Back Pressed")
             }
         }
-        else{
-            rv_happy_places_list.visibility=View.GONE
-            tv_no_records_available.visibility=View.VISIBLE
+    }
 
+    private fun getHappyPlacesListFromLocalDB() {
+        val dbHandler = DatabaseHandler(this)
+
+        val getHappyPlacesList = dbHandler.getHappyPlacesList()
+
+        if (getHappyPlacesList.size > 0) {
+            rv_happy_places_list.visibility = View.VISIBLE
+            tv_no_records_available.visibility = View.GONE
+            setupHappyPlacesRecyclerView(getHappyPlacesList)
+        } else {
+            rv_happy_places_list.visibility = View.GONE
+            tv_no_records_available.visibility = View.VISIBLE
         }
+    }
+
+    private fun setupHappyPlacesRecyclerView(happyPlacesList: ArrayList<HappyPlaceModel>) {
+
+        rv_happy_places_list.layoutManager = LinearLayoutManager(this)
+        rv_happy_places_list.setHasFixedSize(true)
+
+        val placesAdapter = HappyPlacesAdapter(this, happyPlacesList)
+        rv_happy_places_list.adapter = placesAdapter
+
+        placesAdapter.setOnClickListener(object :
+                HappyPlacesAdapter.OnClickListener {
+            override fun onClick(position: Int, model: HappyPlaceModel) {
+                val intent = Intent(this@MainActivity, HappyPlaceDetailActivity::class.java)
+                // START
+                intent.putExtra(EXTRA_PLACE_DETAILS, model) // Passing the complete serializable data class to the detail activity using intent.
+                // END
+                startActivity(intent)
+            }
+        })
+    }
+
+    companion object {
+        private const val ADD_PLACE_ACTIVITY_REQUEST_CODE = 1
+
+        internal const val EXTRA_PLACE_DETAILS = "extra_place_details"
 
     }
 }
