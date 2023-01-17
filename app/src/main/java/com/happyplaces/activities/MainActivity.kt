@@ -1,6 +1,7 @@
 package com.happyplaces.activities
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -13,17 +14,13 @@ import com.happyplaces.R
 import com.happyplaces.adapters.HappyPlacesAdapter
 import com.happyplaces.database.DatabaseHandler
 import com.happyplaces.models.HappyPlaceModel
+import com.happyplaces.utils.SwipeToDeleteCallback
 import kotlinx.android.synthetic.main.activity_main.*
 import pl.kitek.rvswipetodelete.SwipeToEditCallback
 
 class MainActivity : AppCompatActivity() {
-
-    /**
-     * This function is auto created by Android when the Activity Class is created.
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
 
         fabAddHappyPlace.setOnClickListener {
@@ -48,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getHappyPlacesListFromLocalDB() {
+
         val dbHandler = DatabaseHandler(this)
 
         val getHappyPlacesList = dbHandler.getHappyPlacesList()
@@ -74,29 +72,55 @@ class MainActivity : AppCompatActivity() {
                 HappyPlacesAdapter.OnClickListener {
             override fun onClick(position: Int, model: HappyPlaceModel) {
                 val intent = Intent(this@MainActivity, HappyPlaceDetailActivity::class.java)
-                // START
-                intent.putExtra(EXTRA_PLACE_DETAILS, model) // Passing the complete serializable data class to the detail activity using intent.
-                // END
+                intent.putExtra(EXTRA_PLACE_DETAILS, model)
                 startActivity(intent)
             }
         })
 
-        val editSwipeHandler= object :SwipeToEditCallback(this){
+        val editSwipeHandler = object : SwipeToEditCallback(this) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val adapter=rv_happy_places_list.adapter as HappyPlacesAdapter
-                adapter.notifyEditItem(this@MainActivity,viewHolder.adapterPosition,
-                    ADD_PLACE_ACTIVITY_REQUEST_CODE)
+                val adapter = rv_happy_places_list.adapter as HappyPlacesAdapter
+                adapter.notifyEditItem(
+                        this@MainActivity,
+                        viewHolder.adapterPosition,
+                        ADD_PLACE_ACTIVITY_REQUEST_CODE
+                )
+            }
+        }
+        val editItemTouchHelper = ItemTouchHelper(editSwipeHandler)
+        editItemTouchHelper.attachToRecyclerView(rv_happy_places_list)
+
+        val deleteSwipeHandler= object : SwipeToDeleteCallback(this){
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+
+                val builder = AlertDialog.Builder(this@MainActivity)
+                builder.setMessage("Are you sure you want to Delete?")
+                    .setCancelable(false)
+                    .setPositiveButton("Yes") { dialog, id ->
+                        // Delete selected note
+                        val adapter=rv_happy_places_list.adapter as HappyPlacesAdapter
+                        adapter.removeAt(viewHolder.adapterPosition)
+
+                        getHappyPlacesListFromLocalDB()
+                    }
+                    .setNegativeButton("No") { dialog, id ->
+                        // Dismiss the dialog
+                        getHappyPlacesListFromLocalDB()
+                        dialog.dismiss()
+
+                    }
+                val alert = builder.create()
+                alert.show()
+
             }
         }
 
-        val editItemTouchHelper=ItemTouchHelper(editSwipeHandler)
-        editItemTouchHelper.attachToRecyclerView(rv_happy_places_list)
+        val deleteItemTouchHelper=ItemTouchHelper(deleteSwipeHandler)
+        deleteItemTouchHelper.attachToRecyclerView(rv_happy_places_list)
     }
 
     companion object {
         private const val ADD_PLACE_ACTIVITY_REQUEST_CODE = 1
-
         internal const val EXTRA_PLACE_DETAILS = "extra_place_details"
-
     }
 }

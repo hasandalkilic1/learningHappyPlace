@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.happyplaces.R
 import com.happyplaces.activities.AddHappyPlaceActivity
 import com.happyplaces.activities.MainActivity
+import com.happyplaces.database.DatabaseHandler
 import com.happyplaces.models.HappyPlaceModel
 import kotlinx.android.synthetic.main.item_happy_place.view.*
 
@@ -32,7 +33,6 @@ open class HappyPlacesAdapter(
         )
     }
 
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val model = list[position]
 
@@ -50,19 +50,31 @@ open class HappyPlacesAdapter(
         }
     }
 
-    fun notifyEditItem(activity:Activity,position:Int,requestCode:Int){
-        val intent= Intent(context,AddHappyPlaceActivity::class.java)
-        intent.putExtra(MainActivity.EXTRA_PLACE_DETAILS,list[position])
-        activity.startActivityForResult(intent,requestCode)
-        notifyItemChanged(position)
-
-    }
-
-
     override fun getItemCount(): Int {
         return list.size
     }
 
+    fun notifyEditItem(activity: Activity, position: Int, requestCode: Int) {
+        val intent = Intent(context, AddHappyPlaceActivity::class.java)
+        intent.putExtra(MainActivity.EXTRA_PLACE_DETAILS, list[position])
+        activity.startActivityForResult(
+                intent,
+                requestCode
+        )
+
+        notifyItemChanged(position)
+    }
+
+    fun removeAt(position: Int) {
+
+        val dbHandler = DatabaseHandler(context)
+        val isDeleted = dbHandler.deleteHappyPlace(list[position])
+
+        if (isDeleted > 0) {
+            list.removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
 
     fun setOnClickListener(onClickListener: OnClickListener) {
         this.onClickListener = onClickListener

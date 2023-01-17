@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Happy Places</string>
 
+    <!--TODO (Step 2: Add the google api key which we will generated in the console after creating project. This we will use on later stage.)-->
+    <string name="google_maps_api_key">AIzaSyAz_D_EiJV3csNhFGHhml6bt2B78pwUJZE</string>
+
     <string name="edit_text_hint_title">Title</string>
     <string name="edit_text_hint_description">Description</string>
     <string name="edit_text_hint_date">Date</string>

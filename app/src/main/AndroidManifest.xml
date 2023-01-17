@@ -38,6 +38,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/CustomNoActionBarTheme"/>
 
+        <!--TODO (Step 3: Add a meta tag for Google GEO API key.)-->
+        <!--START-->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_api_key" />
+        <!--END-->
     </application>
 
 </manifest>

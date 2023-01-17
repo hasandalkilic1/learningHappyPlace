@@ -7,14 +7,12 @@ import com.happyplaces.R
 import com.happyplaces.models.HappyPlaceModel
 import kotlinx.android.synthetic.main.activity_happy_place_detail.*
 
-
 class HappyPlaceDetailActivity : AppCompatActivity() {
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_happy_place_detail)
-        // Start
+
         var happyPlaceDetailModel: HappyPlaceModel? = null
 
         if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
@@ -35,6 +33,5 @@ class HappyPlaceDetailActivity : AppCompatActivity() {
             tv_description.text = happyPlaceDetailModel.description
             tv_location.text = happyPlaceDetailModel.location
         }
-        // END
     }
 }
