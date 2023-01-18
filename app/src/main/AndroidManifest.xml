@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:allowBackup="false"
@@ -38,12 +40,18 @@
             android:screenOrientation="portrait"
             android:theme="@style/CustomNoActionBarTheme"/>
 
-        <!--TODO (Step 3: Add a meta tag for Google GEO API key.)-->
+        <!--TODO (Step 2: Modify the param as required.)-->
         <!--START-->
+        <activity
+            android:name=".activities.MapActivity"
+            android:label="Happy Place on Map"
+            android:screenOrientation="portrait"
+            android:theme="@style/CustomNoActionBarTheme" />
+        <!--END-->
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />
-        <!--END-->
     </application>
 
 </manifest>

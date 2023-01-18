@@ -28,6 +28,7 @@ class DatabaseHandler(context: Context) :
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
+        //creating table with fields
         val CREATE_HAPPY_PLACE_TABLE = ("CREATE TABLE " + TABLE_HAPPY_PLACE + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_TITLE + " TEXT,"

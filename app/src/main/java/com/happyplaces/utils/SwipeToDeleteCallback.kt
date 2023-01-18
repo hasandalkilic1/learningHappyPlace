@@ -10,9 +10,7 @@ import com.happyplaces.R
 
 // For detail explanation of this class you can look at below link.
 // https://medium.com/@kitek/recyclerview-swipe-to-delete-easier-than-you-thought-cff67ff5e5f6
-/**
- * A abstract class which we will use for delete feature.
- */
+
 abstract class SwipeToDeleteCallback(context: Context) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
     private val deleteIcon = ContextCompat.getDrawable(context, R.drawable.ic_delete_white_24dp)

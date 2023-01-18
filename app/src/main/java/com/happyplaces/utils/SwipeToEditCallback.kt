@@ -46,18 +46,15 @@ abstract class SwipeToEditCallback(context: Context) : ItemTouchHelper.SimpleCal
             return
         }
 
-
         background.color = backgroundColor
         background.setBounds(itemView.left + dX.toInt(), itemView.top, itemView.left, itemView.bottom)
         background.draw(c)
-
 
         val editIconTop = itemView.top + (itemHeight - intrinsicHeight) / 2
         val editIconMargin = (itemHeight - intrinsicHeight)
         val editIconLeft = itemView.left + editIconMargin - intrinsicWidth
         val editIconRight = itemView.left + editIconMargin
         val editIconBottom = editIconTop + intrinsicHeight
-
 
         editIcon!!.setBounds(editIconLeft, editIconTop, editIconRight, editIconBottom)
         editIcon.draw(c)

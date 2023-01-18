@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -38,11 +39,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
-
     private var cal = Calendar.getInstance()
     private lateinit var dateSetListener: DatePickerDialog.OnDateSetListener
     private var saveImageToInternalStorage: Uri? = null
-    private var mLatitude: Double = 0.0 //
+    private var mLatitude: Double = 0.0
     private var mLongitude: Double = 0.0
     private var mHappyPlaceDetails: HappyPlaceModel? = null
 
@@ -52,23 +52,24 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
         setSupportActionBar(toolbar_add_place)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         toolbar_add_place.setNavigationOnClickListener {
             onBackPressed()
         }
-        // START
+
         if (!Places.isInitialized()) {
             Places.initialize(
                     this@AddHappyPlaceActivity,
                     resources.getString(R.string.google_maps_api_key)
             )
         }
-        // END
 
         if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)) {
             mHappyPlaceDetails =
                     intent.getParcelableExtra(MainActivity.EXTRA_PLACE_DETAILS) as HappyPlaceModel
         }
 
+        // https://www.tutorialkart.com/kotlin-android/android-datepicker-kotlin-example/
         dateSetListener =
                 DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
                     cal.set(Calendar.YEAR, year)
@@ -101,6 +102,12 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         tv_add_image.setOnClickListener(this)
         btn_save.setOnClickListener(this)
         et_location.setOnClickListener(this)
+        tv_select_current_location.setOnClickListener(this)
+    }
+
+    private fun isLocationEnabled():Boolean{
+        val locationManager:LocationManager=getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)||locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     override fun onClick(v: View?) {
@@ -133,14 +140,19 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
 
             R.id.et_location -> {
                 try {
-                    val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS)
-                    val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
+                    val fields = listOf(
+                            Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG,
+                            Place.Field.ADDRESS
+                    )
+                    val intent =
+                            Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
                                     .build(this@AddHappyPlaceActivity)
                     startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
+
             R.id.btn_save -> {
 
                 when {
@@ -159,6 +171,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                         Toast.makeText(this, "Please add image", Toast.LENGTH_SHORT).show()
                     }
                     else -> {
+
                         val happyPlaceModel = HappyPlaceModel(
                                 if (mHappyPlaceDetails == null) 0 else mHappyPlaceDetails!!.id,
                                 et_title.text.toString(),
@@ -169,6 +182,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                                 mLatitude,
                                 mLongitude
                         )
+
                         val dbHandler = DatabaseHandler(this)
 
                         if (mHappyPlaceDetails == null) {
@@ -189,8 +203,36 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
             }
+            R.id.tv_select_current_location->{
+                if(!isLocationEnabled()){
+                    Toast.makeText(this,"Your location provider is turned off.Please Turn It On.",Toast.LENGTH_SHORT).show()
+                    val intent=Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    startActivity(intent)
+                }
+                else{
+                    Dexter.withActivity(this).withPermissions(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION)
+                        .withListener(object : MultiplePermissionsListener{
+                        override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+
+                            if (report!!.areAllPermissionsGranted()) {
+                                Toast.makeText(this@AddHappyPlaceActivity,"Location permission is granted",Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permissions: MutableList<PermissionRequest>?,
+                            token: PermissionToken?
+                        ) {
+                            showRationalDialogForPermissions()
+                        }
+                    }).onSameThread().check()
+                }
+            }
         }
     }
+
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
@@ -238,9 +280,9 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun updateDateInView() {
-        val myFormat = "dd.MM.yyyy"
-        val sdf = SimpleDateFormat(myFormat, Locale.getDefault())
-        et_date.setText(sdf.format(cal.time).toString())
+        val myFormat = "dd.MM.yyyy" // mention the format you need
+        val sdf = SimpleDateFormat(myFormat, Locale.getDefault()) // A date format
+        et_date.setText(sdf.format(cal.time).toString()) // A selected date using format which we have used is set to the UI.
     }
 
     private fun choosePhotoFromGallery() {
@@ -283,11 +325,13 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                 )
                 .withListener(object : MultiplePermissionsListener {
                     override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+
                         if (report!!.areAllPermissionsGranted()) {
                             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
                             startActivityForResult(intent, CAMERA)
                         }
                     }
+
                     override fun onPermissionRationaleShouldBeShown(
                             permissions: MutableList<PermissionRequest>?,
                             token: PermissionToken?
@@ -322,15 +366,16 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     private fun saveImageToInternalStorage(bitmap: Bitmap): Uri {
 
         val wrapper = ContextWrapper(applicationContext)
+
         var file = wrapper.getDir(IMAGE_DIRECTORY, Context.MODE_PRIVATE)
 
         file = File(file, "${UUID.randomUUID()}.jpg")
 
         try {
+
             val stream: OutputStream = FileOutputStream(file)
 
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-
             stream.flush()
 
             stream.close()

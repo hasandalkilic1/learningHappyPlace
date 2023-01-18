@@ -19,8 +19,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import pl.kitek.rvswipetodelete.SwipeToEditCallback
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_main)
 
         fabAddHappyPlace.setOnClickListener {
@@ -97,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                 builder.setMessage("Are you sure you want to Delete?")
                     .setCancelable(false)
                     .setPositiveButton("Yes") { dialog, id ->
-                        // Delete selected note
+
                         val adapter=rv_happy_places_list.adapter as HappyPlacesAdapter
                         adapter.removeAt(viewHolder.adapterPosition)
 
@@ -114,8 +116,7 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-
-        val deleteItemTouchHelper=ItemTouchHelper(deleteSwipeHandler)
+        val deleteItemTouchHelper = ItemTouchHelper(deleteSwipeHandler)
         deleteItemTouchHelper.attachToRecyclerView(rv_happy_places_list)
     }
 
