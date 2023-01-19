@@ -1,6 +1,7 @@
 package com.happyplaces.activities
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
@@ -8,9 +9,11 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
@@ -18,6 +21,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.location.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
@@ -25,6 +29,7 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.happyplaces.R
 import com.happyplaces.database.DatabaseHandler
 import com.happyplaces.models.HappyPlaceModel
+import com.happyplaces.utils.GetAddressFromLatLng
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -46,6 +51,8 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     private var mLongitude: Double = 0.0
     private var mHappyPlaceDetails: HappyPlaceModel? = null
 
+    private lateinit var mFusedLocationClient:FusedLocationProviderClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_happy_place)
@@ -56,6 +63,8 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
         toolbar_add_place.setNavigationOnClickListener {
             onBackPressed()
         }
+
+        mFusedLocationClient=LocationServices.getFusedLocationProviderClient(this)
 
         if (!Places.isInitialized()) {
             Places.initialize(
@@ -108,6 +117,37 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
     private fun isLocationEnabled():Boolean{
         val locationManager:LocationManager=getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)||locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestNewLocationData(){
+        var mLocationRequest=LocationRequest()
+        mLocationRequest.priority=LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest.interval=1000
+        mLocationRequest.numUpdates=1
+
+        mFusedLocationClient.requestLocationUpdates(mLocationRequest,mLocationCallback, Looper.myLooper())
+    }
+
+    private val mLocationCallback=object:LocationCallback(){
+        override fun onLocationResult(locationResult: LocationResult) {
+            val mLastLocation:Location?=locationResult!!.lastLocation
+            mLatitude=mLastLocation!!.latitude
+            Log.i("Current Latitude","$mLatitude")
+            mLongitude=mLastLocation!!.longitude
+            Log.i("Current Longitude","$mLongitude")
+
+            val addressTask=GetAddressFromLatLng(this@AddHappyPlaceActivity,mLatitude,mLongitude)
+            addressTask.setAddressListener(object: GetAddressFromLatLng.AddressListener{
+                override fun onAddressFound(address:String?){
+                    et_location.setText(address)
+                }
+                override fun onError(){
+                    Log.e("Get Address:: ","Something went wrong!")
+                }
+            })
+            addressTask.getAddress()
+        }
     }
 
     override fun onClick(v: View?) {
@@ -217,7 +257,7 @@ class AddHappyPlaceActivity : AppCompatActivity(), View.OnClickListener {
                         override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
 
                             if (report!!.areAllPermissionsGranted()) {
-                                Toast.makeText(this@AddHappyPlaceActivity,"Location permission is granted",Toast.LENGTH_SHORT).show()
+                                requestNewLocationData()
                             }
                         }
 

@@ -24,7 +24,6 @@ android {
 }
 
 dependencies {
-
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.2.0'
@@ -43,6 +42,10 @@ dependencies {
 
     // This is for place picker
     implementation 'com.google.android.libraries.places:places:2.1.0'
+
+    //this is for finding user location more sensitive
+    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
